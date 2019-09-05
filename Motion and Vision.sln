@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29209.152
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RobotArm", "RobotArm\RobotArm.csproj", "{A2D73F90-3E7E-42C0-AB25-DB71C6D1695E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A2D73F90-3E7E-42C0-AB25-DB71C6D1695E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2D73F90-3E7E-42C0-AB25-DB71C6D1695E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2D73F90-3E7E-42C0-AB25-DB71C6D1695E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2D73F90-3E7E-42C0-AB25-DB71C6D1695E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B4647E4E-2B04-4C8A-A91C-DD4AD499BA9D}
+	EndGlobalSection
+EndGlobal
