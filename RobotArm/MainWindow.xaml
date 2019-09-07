@@ -1,4 +1,4 @@
-﻿<Window x:Class="Motion_and_vision.MainWindow"
+﻿<Window x:Class="RobotArm.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -15,7 +15,7 @@
         </Grid.ColumnDefinitions>
         <StackPanel>
             <Button x:Name="AddSegmentButton"
-                    Height="0"
+                    Height="40"
                     Content="Add segment"
                     Margin="5"/>
             <Button x:Name="RemoveSegmentButton"

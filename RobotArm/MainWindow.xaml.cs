@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
-using System.Numerics;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace Motion_and_vision
+namespace RobotArm
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -20,20 +18,23 @@ namespace Motion_and_vision
 
         public MainWindow()
         {
-
-
             segments = new List<Segment>();
             InitializeComponent();
 
-            segments.Add(new Segment(new PointF(150, 0), 0, 100));
+            segments.Add(new Segment(new PointF(150, 100),100));
             AddSegment();
             AddSegment();
 
             AddSegmentButton.Click += delegate { AddSegment(); };
             RemoveSegmentButton.Click += delegate
             {
-                if (segments.Count > 0)
-                    segments.RemoveAt(segments.Count - 1);
+                if (segments.Count <= 0)
+                {
+                    return;
+                }
+
+                segments.RemoveAt(segments.Count - 1);
+                Draw();
             };
             Draw();
 
@@ -46,22 +47,54 @@ namespace Motion_and_vision
         public void RobotCanvasOnClick(object sender, MouseEventArgs e)
         {
             var pos = e.GetPosition(RobotCanvas);
-            segments[0].UpdateIK(new PointF((float)pos.X, (float)pos.Y));
+            UpdateIk(new PointF((float)pos.X, (float)pos.Y));
             Draw();
         }
+
+        private void UpdateIk(PointF target)
+        {
+            if (segments.Count <= 0)
+            {
+                return;
+            }
+
+            if (GetDistance(segments[^1].Position, target) < DistanceThreshold) return;
+
+
+            for (var i = 0; i < 20; i++)
+            {
+                segments[0].UpdateIk(new PointF(150f, 0f), target);
+                if (GetDistance(segments[^1].Position, target) < DistanceThreshold) return;
+            }
+
+        }
+
+        /// <summary> Gets the distance between two arbitrary points </summary>
+        /// <param name="pointA">The first point</param>
+        /// <param name="pointB">The second point</param>
+        /// <returns></returns>
+        private static double GetDistance(PointF pointA, PointF pointB) => ((pointA.X - pointB.X) * (pointA.X - pointB.X)) + 
+                                                                           ((pointA.Y - pointB.Y) * (pointA.Y - pointB.Y));
 
         /// <summary> Adds a segment </summary>
         private void AddSegment()
         {
-            var lastSegment = segments[^1];
-            var newSegment = new Segment(new PointF(lastSegment.Position.X, lastSegment.Position.X + 100), 0, 0);
-            lastSegment.Child = newSegment;
+            Segment newSegment;
+            if (segments.Count > 0)
+            {
+                var lastSegment = segments[^1];
+                newSegment = new Segment(new PointF(lastSegment.Position.X, lastSegment.Position.Y + 100), 100);
+                lastSegment.Child = newSegment;
+            }
+            else
+            {
+                newSegment = new Segment(new PointF(150, 100),100);
+            }
+
             segments.Add(newSegment);
             Draw();
         }
         #endregion
-
-
 
         /// <summary> Draws the robot </summary>
         private void Draw()
@@ -69,29 +102,29 @@ namespace Motion_and_vision
             var lines = new List<Line>();
 
             RobotCanvas.Children.Clear();
-            for (var i = 0; i < segments.Count; i++)
+            foreach (var t in segments)
             {
                 var joint = new Ellipse { Width = 15, Height = 15, Stroke = Brushes.Red };
 
                 var line = lines.Count > 0
-                    ? new Line
-                    {
-                        X1 = lines[^1].X2,
-                        Y1 = lines[^1].Y2,
-                        X2 = lines[^1].X2 + segments[i].Position.X,
-                        Y2 = lines[^1].Y2 + segments[i].Position.Y,
-                        Stroke = Brushes.Black,
-                        StrokeThickness = 2
-                    }
-                    : new Line
-                    {
-                        X1 = segments[i].Position.X,
-                        Y1 = segments[i].Position.Y,
-                        X2 = segments[i].Position.X,
-                        Y2 = segments[i].Position.Y,
-                        Stroke = Brushes.Black,
-                        StrokeThickness = 2
-                    };
+                               ? new Line
+                                 {
+                                     X1 = lines[^1].X2,
+                                     Y1 = lines[^1].Y2,
+                                     X2 = t.Position.X,
+                                     Y2 = t.Position.Y,
+                                     Stroke = Brushes.Black,
+                                     StrokeThickness = 2
+                                 }
+                               : new Line
+                                 {
+                                     X1 = 150,
+                                     Y1 = 0,
+                                     X2 = t.Position.X,
+                                     Y2 = t.Position.Y,
+                                     Stroke = Brushes.Black,
+                                     StrokeThickness = 2
+                                 };
                 lines.Add(line);
 
                 RobotCanvas.Children.Add(line);

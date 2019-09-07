@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace Motion_and_vision
+namespace RobotArm
 {
     /// <summary>
     /// Interaction logic for App.xaml
