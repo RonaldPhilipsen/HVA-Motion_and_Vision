@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Numerics;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -13,17 +13,26 @@ namespace RobotArm
     /// </summary>
     public partial class MainWindow
     {
-        private const float DistanceThreshold = 0.05f;
-        private readonly List<Segment> segments;
+        private const int NumSegments = 3;
+        private const int MaxRetries = 20;
+        private const float Epsilon = 0.05f;
+        private readonly List<ArmSegment> segments = new List<ArmSegment>();
+        
+        // Array of angles to rotate by (for each joint);
+        private float[] theta = new float[NumSegments];
+        // the sine component for each joint
+        private float[] sin = new float[NumSegments];
+        // The cosine component for each joint
+        private float[] cos = new float[NumSegments];
 
         public MainWindow()
         {
-            segments = new List<Segment>();
             InitializeComponent();
 
-            segments.Add(new Segment(new PointF(150, 100),100));
-            AddSegment();
-            AddSegment();
+            for (var i = 0; i < NumSegments; i++)
+            {
+                AddSegment();
+            }
 
             AddSegmentButton.Click += delegate { AddSegment(); };
             RemoveSegmentButton.Click += delegate
@@ -36,6 +45,7 @@ namespace RobotArm
                 segments.RemoveAt(segments.Count - 1);
                 Draw();
             };
+
             Draw();
 
         }
@@ -44,53 +54,82 @@ namespace RobotArm
         /// <summary> Makes the robot point to the mouse </summary>
         /// <param name="sender"> The sender</param>
         /// <param name="e"> The robot event args</param>
-        public void RobotCanvasOnClick(object sender, MouseEventArgs e)
+        private void RobotCanvasOnClick(object sender, MouseEventArgs e)
         {
             var pos = e.GetPosition(RobotCanvas);
-            UpdateIk(new PointF((float)pos.X, (float)pos.Y));
+
+            if (!UpdateIk(new Vector3((float) pos.X, (float) pos.Y, 0)))
+            {
+               // MessageBox.Show("Failed to set IK");
+            }
             Draw();
         }
 
-        private void UpdateIk(PointF target)
+        private bool UpdateIk(Vector3 target)
         {
-            if (segments.Count <= 0)
+            var tries = 0;
+            while (tries < MaxRetries)
             {
-                return;
+                for (var i = segments.Count - 1; i >= 0; i--)
+                {
+                    var currentPos = segments[i].GetForwardKinematics();
+                    Debug.WriteLine($"start pos: {currentPos}");
+
+                    // Vector from the ith joint to the end effector
+                    var r1 = segments[^1].GetForwardKinematics() - currentPos;
+                    
+                    // Vector from the i'Th joint to the target
+                    var r2 = target - currentPos;
+
+                    if (r1.Length() * r2.Length() <= 0.001f)
+                    {
+                        // cos component will be 1 and sin will be 0
+                        cos[i] = 1;
+                        sin[i] = 0;
+                    }
+                    else
+                    {
+                        // find the components using dot and cross product
+                        cos[i] = Vector3.Dot(r1, r2) / (r1.Length() * r2.Length());
+                        sin[i] = Vector3.Cross(r1, r2).Length() / (r1.Length() * r2.Length());
+                    }
+
+                    // The axis of rotation is basically the 
+                    // unit vector along the cross product 
+                    var axis = Vector3.Cross(r1, r2);
+
+                    // find the angle between r1 and r2 (and clamp values of cos to avoid errors)
+                    theta[i] = (float) System.Math.Acos(System.Math.Max(-1, System.Math.Min(1f, cos[i])));
+                    // invert angle if sin component is negative
+                    if (sin[i] < 0.0f)
+                    {
+                        theta[i] = -theta[i];
+                    }
+
+                    // obtain an angle value between -pi and pi, and then convert to degrees
+                    theta[i] = (float)(Math.SimpleAngle(theta[i]) * Math.RadsToDeg);
+
+                    // rotate the ith joint along the axis by theta degrees in the world space.
+                    segments[i].Rotate(axis, theta[i]);
+                    Debug.WriteLine($"new  pos: {segments[i].GetForwardKinematics()}");
+
+                }
+
+                tries++;
             }
 
-            if (GetDistance(segments[^1].Position, target) < DistanceThreshold) return;
-
-
-            for (var i = 0; i < 20; i++)
-            {
-                segments[0].UpdateIk(new PointF(150f, 0f), target);
-                if (GetDistance(segments[^1].Position, target) < DistanceThreshold) return;
-            }
-
+            var delta = segments[^1].GetForwardKinematics() - target;
+            //If target is in reach, return true, else return false;
+            return System.Math.Abs(delta.X) < Epsilon &&
+                   System.Math.Abs(delta.Y) < Epsilon &&
+                   System.Math.Abs(delta.Z) < Epsilon;
         }
-
-        /// <summary> Gets the distance between two arbitrary points </summary>
-        /// <param name="pointA">The first point</param>
-        /// <param name="pointB">The second point</param>
-        /// <returns></returns>
-        private static double GetDistance(PointF pointA, PointF pointB) => ((pointA.X - pointB.X) * (pointA.X - pointB.X)) + 
-                                                                           ((pointA.Y - pointB.Y) * (pointA.Y - pointB.Y));
 
         /// <summary> Adds a segment </summary>
         private void AddSegment()
         {
-            Segment newSegment;
-            if (segments.Count > 0)
-            {
-                var lastSegment = segments[^1];
-                newSegment = new Segment(new PointF(lastSegment.Position.X, lastSegment.Position.Y + 100), 100);
-                lastSegment.Child = newSegment;
-            }
-            else
-            {
-                newSegment = new Segment(new PointF(150, 100),100);
-            }
-
+            var newSegment = segments.Count > 0 ? new ArmSegment(segments[^1], 90, 45) 
+                                                : new ArmSegment(null, 0, 0);
             segments.Add(newSegment);
             Draw();
         }
@@ -99,34 +138,24 @@ namespace RobotArm
         /// <summary> Draws the robot </summary>
         private void Draw()
         {
-            var lines = new List<Line>();
-
             RobotCanvas.Children.Clear();
             foreach (var t in segments)
             {
+                var pos = t.GetForwardKinematics();
+                var parentPos = t.Parent?.GetForwardKinematics();
+
                 var joint = new Ellipse { Width = 15, Height = 15, Stroke = Brushes.Red };
 
-                var line = lines.Count > 0
-                               ? new Line
-                                 {
-                                     X1 = lines[^1].X2,
-                                     Y1 = lines[^1].Y2,
-                                     X2 = t.Position.X,
-                                     Y2 = t.Position.Y,
-                                     Stroke = Brushes.Black,
-                                     StrokeThickness = 2
-                                 }
-                               : new Line
-                                 {
-                                     X1 = 150,
-                                     Y1 = 0,
-                                     X2 = t.Position.X,
-                                     Y2 = t.Position.Y,
-                                     Stroke = Brushes.Black,
-                                     StrokeThickness = 2
-                                 };
-                lines.Add(line);
-
+                var line = new Line
+                           {
+                               X1 = parentPos?.X ?? 200,
+                               Y1 = parentPos?.Y ?? 200,
+                               X2 = pos.X,
+                               Y2 = pos.Y,
+                               Stroke = Brushes.Black,
+                               StrokeThickness = 2
+                           };
+                
                 RobotCanvas.Children.Add(line);
                 RobotCanvas.Children.Add(joint);
 
@@ -135,6 +164,8 @@ namespace RobotArm
             }
 
         }
+
+        
     }
 
 }

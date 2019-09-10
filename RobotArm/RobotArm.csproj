@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
-    <RootNamespace>Motion_and_vision</RootNamespace>
+    <RootNamespace>RobotArm</RootNamespace>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
