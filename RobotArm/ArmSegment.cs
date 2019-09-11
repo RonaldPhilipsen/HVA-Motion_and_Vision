@@ -1,39 +1,43 @@
-﻿using System.Numerics;
-
-namespace RobotArm
+﻿namespace RobotArm
 {
+    using System;
+
     public class ArmSegment
     {
-        public ArmSegment(ArmSegment parent, double length, double angle)
+        private readonly double maxAngle;
+        private readonly double minAngle;
+
+        public ArmSegment(ArmSegment parent, double length, double minAngle, double maxAngle, double angle)
         {
+            this.maxAngle = maxAngle;
+            this.minAngle = minAngle;
             Parent = parent;
             Length = length;
-            Angle = angle * Math.DegToRads;
+            Angle = angle * (Math.PI/ 180 );
         }
         
         public ArmSegment Parent { get; }
         public double Length { get; }
-        public double Angle { get; private set; }
+        public double Angle { get; set; }
+        public double Damping { get; set; }
+        
 
-        public Vector3 GetForwardKinematics()
-        {
-            if (Parent == null)
-            {
-                return new Vector3(200 + (float) (Length * System.Math.Sin(Angle)),
-                                   200 + (float) (Length * System.Math.Cos(Angle)),
-                                   0);
-            }
-
-            var pos = Parent.GetForwardKinematics();
-            return new Vector3(pos.X + (float) (Length * System.Math.Sin(Parent.Angle + Angle)),
-                               pos.Y + (float) (Length * System.Math.Cos(Parent.Angle + Angle)),
-                               0);
-        }
-
-        public void Rotate(Vector3 axis,double angle)
+        public void Rotate(double angle)
         { 
             if (Parent == null) return;
-            Angle += angle;
+
+            /*
+            if (angle < minAngle)
+            {
+                angle = minAngle;
+            } else if (angle > maxAngle)
+            {
+                angle = maxAngle;
+            }
+            */
+
+            Angle = angle;
+            //Angle -= angle;
         }
     }
 }

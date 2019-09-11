@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="MainWindow"
-        Height="420"
+        Height="450"
         Width="510"
         MouseLeftButtonDown="RobotCanvasOnClick">
     <Grid>
@@ -27,7 +27,9 @@
                 Width="400"
                 x:Name="RobotCanvas"
                 Grid.Column="1"
-                ClipToBounds="True">
+                ClipToBounds="True"
+                >
+            <Canvas.Background>BlanchedAlmond</Canvas.Background>
             <Canvas.RenderTransform>
                 <TransformGroup>
                 <ScaleTransform ScaleY="-1" />
