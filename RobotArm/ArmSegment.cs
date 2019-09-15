@@ -27,14 +27,14 @@
             if (Parent == null) return;
 
             
-            if (angle < minAngle)
+            /*if (angle < minAngle)
             {
                 angle = minAngle;
             } else if (angle > maxAngle)
             {
                 angle = maxAngle;
             }
-            
+            */
 
             Angle += angle;
         }

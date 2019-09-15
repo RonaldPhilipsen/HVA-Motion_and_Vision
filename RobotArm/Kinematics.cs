@@ -48,7 +48,7 @@ namespace RobotArm
                 var tv = GetOffsetVector(center, targetPos);
 
                 var angle = AngleBetweenVectors(cv,tv );
-                a.Angle += angle;
+                a.Rotate(angle);
 /*
                 if (--numSegments > 1)
                 {
