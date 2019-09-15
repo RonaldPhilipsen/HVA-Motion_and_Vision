@@ -6,6 +6,9 @@ namespace RobotArm
 {
     public static class Kinematics
     {
+        /// <summary> Get the absolute position of a given arm segment </summary>
+        /// <param name="segment"> The segment </param>
+        /// <returns> a vector3 pointing at the absolute position </returns>
         public static Vector3 Forward(ArmSegment segment)
         {
             if (segment.Parent == null)
@@ -21,62 +24,97 @@ namespace RobotArm
                                0);
         }
 
-        public static bool Inverse(List<ArmSegment> segments, Vector3 targetPosition, double epsilon, int maxTries)
+        public static bool Inverse(List<ArmSegment> Joints, Vector3 targetPos, double epsilon, int maxTries)
         {
             //targetPosition -= new Vector3(MainWindow.XOffSet, MainWindow.YOffSet, 0);
-            uint tries = 0;
-            var numSegments = segments.Count - 1;
+            var numSegments = Joints.Count - 1;
             //get the last segment
-            var a = segments[^1];
+            var a = Joints[numSegments];
             var endPos = Forward(a) ;
 
-            while (tries++ < maxTries)
+            for (var tries = 0; tries < maxTries; tries ++)
             {
                 var currentPos = Forward(a);
 
-                if (targetPosition.CalculateDistance(endPos) < epsilon) 
+                if (targetPos.CalculateDistance(endPos) < epsilon) 
                     return true;
 
+                //Get the absolute position of the parent 
                 var center = a.Parent != null
                                  ? Forward(a.Parent)
-                                 : new Vector3(0, 0, 0); 
+                                 : new Vector3(0, 0, 0);
 
-                var angle = AngleBetweenVectors(center, currentPos, targetPosition);
-                a.Rotate(angle);
+                var cv = GetOffsetVector(center, currentPos);
+                var tv = GetOffsetVector(center, targetPos);
 
-                if (--numSegments > 0)
+                var angle = AngleBetweenVectors(cv,tv );
+                a.Angle += angle;
+/*
+                if (--numSegments > 1)
                 {
-                    a = segments[numSegments];
+                    a = Joints[numSegments];
                     continue;
                 }
-                a = segments[^1];
+
+                numSegments = Joints.Count -1;
+                a = Joints[^1];*/
             }
 
             return false;
         }
 
-        public static double AngleBetweenVectors(Vector3 center,
-                                                 Vector3 currentVector,
-                                                 Vector3 targetPosition)
+        public static double AngleBetweenVectors(Vector3 currentVector,
+                                          Vector3 targetPosition)
         {
-            var cv = currentVector - center;
-            var tv = targetPosition - center;
 
-            cv = Vector3.Normalize(cv);
-            tv = Vector3.Normalize(tv);
+            var cv = Vector3.Normalize(currentVector);
+            var tv = Vector3.Normalize(targetPosition);
 
-            double radians = Vector3.Dot(cv, tv);
+            double angle = Vector3.Dot(cv, tv);
             var direction = Vector3.Cross(cv, tv);
 
 
             if (direction.Z > 0)
             {
-                radians = -radians;
+                angle = -angle;
             }
-            return radians;
+            return angle;
         }
 
         private static double CalculateDistance(this Vector3 segment, Vector3 target) => (segment - target).Length();
+
+        private static Vector3 GetOffsetVector(Vector3 center, Vector3 target) {
+            var res = target;
+            if (center.X > 0)
+            {
+                res.X -= center.X;
+            }
+            else if (center.X < 0)
+            {
+                res.X += center.X;
+            }
+
+            if (center.Y > 0)
+            {
+                res.Y -= center.Y;
+            }
+            else if (center.Y < 0)
+            {
+                res.Y += center.Y;
+            }
+
+            if (center.Z > 0)
+            {
+                res.Z -= center.Z;
+            }
+            else if (center.Z < 0)
+            {
+                res.Z += center.Z;
+            }
+
+
+            return res;
+        }
     }
 
 }

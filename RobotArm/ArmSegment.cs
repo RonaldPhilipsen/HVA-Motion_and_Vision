@@ -9,8 +9,8 @@
 
         public ArmSegment(ArmSegment parent, double length, double minAngle, double maxAngle, double angle)
         {
-            this.maxAngle = maxAngle;
-            this.minAngle = minAngle;
+            this.maxAngle = maxAngle * (Math.PI / 180);
+            this.minAngle = minAngle * (Math.PI / 180);
             Parent = parent;
             Length = length;
             Angle = angle * (Math.PI/ 180 );
@@ -26,7 +26,7 @@
         { 
             if (Parent == null) return;
 
-            /*
+            
             if (angle < minAngle)
             {
                 angle = minAngle;
@@ -34,10 +34,9 @@
             {
                 angle = maxAngle;
             }
-            */
+            
 
-            Angle = angle;
-            //Angle -= angle;
+            Angle += angle;
         }
     }
 }
