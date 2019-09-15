@@ -19,8 +19,8 @@ namespace RobotArm
             }
 
             var pos = Forward(segment.Parent);
-            return new Vector3(pos.X + (float)(segment.Length * System.Math.Sin(segment.Parent.Angle + segment.Angle)),
-                               pos.Y + (float)(segment.Length * System.Math.Cos(segment.Parent.Angle + segment.Angle)),
+            return new Vector3(pos.X + (float)(segment.Length * System.Math.Sin(segment.Angle)),
+                               pos.Y + (float)(segment.Length * System.Math.Cos(segment.Angle)),
                                0);
         }
 
