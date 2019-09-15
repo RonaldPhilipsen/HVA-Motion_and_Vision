@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
-using System.Security.Cryptography.X509Certificates;
 
 namespace RobotArm
 {
@@ -24,17 +24,18 @@ namespace RobotArm
                                0);
         }
 
-        public static bool Inverse(List<ArmSegment> Joints, Vector3 targetPos, double epsilon, int maxTries)
+        public static bool Inverse(List<ArmSegment> joints, Vector3 targetPos, double epsilon, int maxTries)
         {
             //targetPosition -= new Vector3(MainWindow.XOffSet, MainWindow.YOffSet, 0);
-            var numSegments = Joints.Count - 1;
+            var numSegments = joints.Count - 1;
             //get the last segment
-            var a = Joints[numSegments];
-            var endPos = Forward(a) ;
-
+            var a = joints[numSegments];
+           
             for (var tries = 0; tries < maxTries; tries ++)
             {
-                var currentPos = Forward(a);
+                var endPos = Forward(joints[numSegments]);
+
+                //var currentPos = Forward(a);
 
                 if (targetPos.CalculateDistance(endPos) < epsilon) 
                     return true;
@@ -44,20 +45,20 @@ namespace RobotArm
                                  ? Forward(a.Parent)
                                  : new Vector3(0, 0, 0);
 
-                var cv = GetOffsetVector(center, currentPos);
+                var cv = GetOffsetVector(center, endPos);
                 var tv = GetOffsetVector(center, targetPos);
 
                 var angle = AngleBetweenVectors(cv,tv );
                 a.Rotate(angle);
-/*
-                if (--numSegments > 1)
+
+                if (--numSegments > 0)
                 {
-                    a = Joints[numSegments];
+                    a = joints[numSegments];
                     continue;
                 }
 
-                numSegments = Joints.Count -1;
-                a = Joints[^1];*/
+                numSegments = joints.Count -1;
+                a = joints[^1];
             }
 
             return false;
@@ -66,13 +67,18 @@ namespace RobotArm
         public static double AngleBetweenVectors(Vector3 currentVector,
                                           Vector3 targetPosition)
         {
-
             var cv = Vector3.Normalize(currentVector);
             var tv = Vector3.Normalize(targetPosition);
 
             double angle = Vector3.Dot(cv, tv);
             var direction = Vector3.Cross(cv, tv);
 
+            if (angle > 1)
+            {
+                return 0;
+            }
+
+            angle = Math.Acos(angle);
 
             if (direction.Z > 0)
             {

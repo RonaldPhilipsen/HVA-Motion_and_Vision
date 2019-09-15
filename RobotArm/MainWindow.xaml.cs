@@ -16,7 +16,7 @@ namespace RobotArm
         public const int YOffSet = 0;
         private const int NumSegments = 3;
         private const float Epsilon = 0.05f;
-        private const int MaxTries = 1;
+        private const int MaxTries = 10;
         private readonly List<ArmSegment> segments = new List<ArmSegment>();
         
         public MainWindow()
@@ -60,7 +60,12 @@ namespace RobotArm
             }*/
 
             var pos = e.GetPosition(RobotCanvas);
-            var relativePos = new Vector3((float) pos.X, (float) pos.Y, 0); 
+            var relativePos = new Vector3((float) pos.X, (float) pos.Y, 0);
+            var clk = new Ellipse { Width = 15, Height = 15, Stroke = Brushes.Gold };
+            RobotCanvas.Children.Add(clk);
+            Canvas.SetLeft(clk, pos.X);
+            Canvas.SetTop(clk, pos.Y);
+
             if (!Kinematics.Inverse(segments, relativePos, Epsilon, MaxTries))
             {
                  //MessageBox.Show("Failed to set IK");
@@ -71,7 +76,7 @@ namespace RobotArm
         /// <summary> Adds a segment </summary>
         private void AddSegment()
         {
-            var newSegment = segments.Count > 0 ? new ArmSegment(segments[^1], 100, -180,180,45)
+            var newSegment = segments.Count > 0 ? new ArmSegment(segments[^1], 100, -120,120,45)
                                                 : new ArmSegment(null, 0, -180,180,0);
             segments.Add(newSegment);
         }
