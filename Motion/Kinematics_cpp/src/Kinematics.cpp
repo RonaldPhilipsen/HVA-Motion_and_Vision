@@ -11,6 +11,8 @@ Vector3 Kinematics::Forward(std::vector<Bone> bones)
         res.x += bones[i].length * cos(cosTheta);
         res.y += bones[i].length * sin(sinTheta);
     }
+
+    std::cout << res << std::endl;
     return res;
 }
 

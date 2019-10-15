@@ -19,24 +19,27 @@ int main(int argc, char **argv)
     {
         char s[12];
         snprintf(s, sizeof(s), "Image%02d.jpg", i);
-        std::string sAsString = s;
-        auto imagePath = argv[1] + sAsString;
-        img = cv::imread(imagePath, cv::IMREAD_GRAYSCALE);
+
+        std::stringstream ss;
+        ss << argv[1] << s;
+
+        img = cv::imread(ss.str(), cv::IMREAD_GRAYSCALE);
         if (!img.data)
         {
             std::cout << "Could not open or find: "
-                      << imagePath
+                      << ss.str()
                       << std::endl;
             exit(-1);
         }
 
         auto nIntersections = GetNumWires(img);
 
-        std::cout << s << " :";
-        if (nIntersections >= 8)
-            std::cout << "the 4 wires are connected" << std::endl;
-        else
-            std::cout << "the 4 wires aren't connected" << std::endl;
+        if (nIntersections < 8)
+            std::cout << s
+                      << " : Error: "
+                      << nIntersections / 2
+                      << " out of 4 wires detected"
+                      << std::endl;
     }
 }
 
@@ -54,9 +57,6 @@ int GetNumWires(cv::Mat img)
         {
             nIntersections++;
         }
-
-        // Set pixel to 255 (white) to draw a line
-        dst.at<uchar>(x, y) = 255;
     }
 
     return nIntersections;
