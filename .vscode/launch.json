@@ -5,11 +5,11 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "(gdb) Launch",
+			"name": "(gdb) DebugCheckConnector",
 			"type": "cppdbg",
 			"request": "launch",
-			"program": "${workspaceFolder}/CheckConnector",
-			"args": ["${workspaceFolder}/Assignment1/Images/Image10.jpg"],
+			"program": "${workspaceFolder}/Vision/CheckConnector",
+			"args": ["${workspaceFolder}/Vision/Assignment1/Images"],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",
 			"environment": [],
