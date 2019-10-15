@@ -1,4 +1,4 @@
-"# Motion-and-vision"
+# Motion-and-vision
 
 Building the Vision projects:
 
@@ -11,6 +11,7 @@ make
 To run the vision assignments:
 
 ```bash
+cd Vision
 ./CheckConnector ./Assignment1/images/
 ./CheckBracket   ./Assignment2/images/
 ./CheckDice      ./Assignment9/images/
